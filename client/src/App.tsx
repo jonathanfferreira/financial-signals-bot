@@ -6,6 +6,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
+import SchedulerNotifications from "./components/SchedulerNotifications";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -35,6 +36,7 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <Router />
+          <SchedulerNotifications />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

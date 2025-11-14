@@ -43,3 +43,13 @@
 - [x] Criar filtros de força de sinal no frontend
 - [x] Testar geração de sinais com diferentes níveis
 - [x] Corrigir erro de toString() em valores undefined
+
+
+## Análise Automática (v1.2)
+
+- [x] Instalar node-cron
+- [x] Criar módulo de análise automática
+- [x] Implementar job que roda a cada 5 minutos
+- [x] Criar sistema de notificações para novos sinais
+- [x] Integrar notificações no frontend
+- [x] Testar análise automática
