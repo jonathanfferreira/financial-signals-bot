@@ -5,17 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, TrendingUp, TrendingDown, Activity, RefreshCw, Clock } from "lucide-react";
+import { Loader2, TrendingUp, TrendingDown, Activity, RefreshCw, Clock, Filter } from "lucide-react";
 import { toast } from "sonner";
 
 export default function Dashboard() {
   const [selectedAsset, setSelectedAsset] = useState<string>("EURUSD=X");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [minStrengthFilter, setMinStrengthFilter] = useState<number>(1);
 
   // Queries
   const { data: assets, isLoading: assetsLoading } = trpc.assets.getActive.useQuery();
-  const { data: recentSignals, isLoading: signalsLoading, refetch: refetchSignals } = trpc.signals.getRecent.useQuery({ limit: 20 });
-  const { data: strongSignals, isLoading: strongLoading } = trpc.signals.getStrong.useQuery({ minStrength: 3, limit: 10 });
+  const { data: recentSignals, isLoading: signalsLoading, refetch: refetchSignals } = trpc.signals.getRecent.useQuery({ limit: 50 });
+  const { data: filteredSignals, isLoading: filteredLoading } = trpc.signals.getByStrength.useQuery({ minStrength: minStrengthFilter, limit: 30 });
 
   // Mutations
   const analyzeMutation = trpc.signals.analyze.useMutation({
@@ -27,8 +28,8 @@ export default function Dashboard() {
         });
         refetchSignals();
       } else {
-        toast.info("Nenhum sinal forte detectado", {
-          description: "Aguarde melhores condições de confluência"
+        toast.info("Nenhum sinal detectado", {
+          description: "Aguarde melhores condições"
         });
       }
     },
@@ -55,6 +56,12 @@ export default function Dashboard() {
     if (direction === "CALL") return "default";
     if (direction === "PUT") return "destructive";
     return "outline";
+  };
+
+  const getStrengthLabel = (strength: number) => {
+    if (strength >= 3) return "Forte 💪";
+    if (strength === 2) return "Médio ⚡";
+    return "Fraco 📊";
   };
 
   const formatTime = (date: Date | string) => {
@@ -135,12 +142,129 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
+        {/* Filtro de Força */}
+        <Card className="mb-6 bg-card border-border">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Filter className="w-5 h-5 text-primary" />
+              Filtrar por Força do Sinal
+            </CardTitle>
+            <CardDescription>
+              Escolha o nível mínimo de força para visualizar sinais
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-4 items-center">
+              <div className="flex-1 max-w-xs">
+                <Select value={minStrengthFilter.toString()} onValueChange={(val) => setMinStrengthFilter(parseInt(val))}>
+                  <SelectTrigger className="bg-input border-border">
+                    <SelectValue placeholder="Selecione força mínima" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">Todos os sinais (Fraco+)</SelectItem>
+                    <SelectItem value="2">Sinais Médios e Fortes</SelectItem>
+                    <SelectItem value="3">Apenas Sinais Fortes</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Mostrando: <span className="font-semibold text-foreground">{getStrengthLabel(minStrengthFilter)}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Tabs de Sinais */}
-        <Tabs defaultValue="recent" className="w-full">
+        <Tabs defaultValue="filtered" className="w-full">
           <TabsList className="grid w-full grid-cols-2 bg-muted">
-            <TabsTrigger value="recent">Sinais Recentes</TabsTrigger>
-            <TabsTrigger value="strong">Sinais Fortes</TabsTrigger>
+            <TabsTrigger value="filtered">Sinais Filtrados</TabsTrigger>
+            <TabsTrigger value="recent">Todos os Sinais</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="filtered" className="mt-6">
+            {filteredLoading ? (
+              <div className="flex justify-center items-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              </div>
+            ) : filteredSignals && filteredSignals.length > 0 ? (
+              <div className="grid gap-4">
+                {filteredSignals.map((signal) => (
+                  <Card key={signal.id} className={`bg-card border-border hover:border-primary/50 transition-colors ${signal.strength >= 3 ? 'border-primary/30' : ''}`}>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className={`p-3 rounded-lg ${signal.direction === 'CALL' ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
+                            {signal.direction === 'CALL' ? (
+                              <TrendingUp className="w-6 h-6 text-green-500" />
+                            ) : (
+                              <TrendingDown className="w-6 h-6 text-red-500" />
+                            )}
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-lg text-foreground">{signal.symbol}</h3>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Badge variant={getSignalBadgeVariant(signal.direction)}>
+                                {signal.direction}
+                              </Badge>
+                              <span className="text-sm text-muted-foreground">
+                                {getStrengthLabel(signal.strength)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <Clock className="w-4 h-4" />
+                            {formatTime(signal.createdAt)}
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {formatDate(signal.createdAt)}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <div className="bg-secondary/50 p-2 rounded">
+                          <div className="text-xs text-muted-foreground">EMA</div>
+                          <div className={`text-sm font-medium ${getSignalColor(signal.emaSignal || '')}`}>
+                            {signal.emaSignal}
+                          </div>
+                        </div>
+                        <div className="bg-secondary/50 p-2 rounded">
+                          <div className="text-xs text-muted-foreground">RSI</div>
+                          <div className={`text-sm font-medium ${getSignalColor(signal.rsiSignal || '')}`}>
+                            {signal.rsiSignal}
+                          </div>
+                        </div>
+                        <div className="bg-secondary/50 p-2 rounded">
+                          <div className="text-xs text-muted-foreground">BBANDS</div>
+                          <div className={`text-sm font-medium ${getSignalColor(signal.bbandsSignal || '')}`}>
+                            {signal.bbandsSignal}
+                          </div>
+                        </div>
+                        <div className="bg-secondary/50 p-2 rounded">
+                          <div className="text-xs text-muted-foreground">MACD</div>
+                          <div className={`text-sm font-medium ${getSignalColor(signal.macdSignal || '')}`}>
+                            {signal.macdSignal}
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card className="bg-card border-border">
+                <CardContent className="p-12 text-center">
+                  <Activity className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold text-foreground mb-2">Nenhum sinal encontrado</h3>
+                  <p className="text-muted-foreground">
+                    Nenhum sinal com força {minStrengthFilter}+ foi encontrado. Tente reduzir o filtro.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
 
           <TabsContent value="recent" className="mt-6">
             {signalsLoading ? (
@@ -168,7 +292,7 @@ export default function Dashboard() {
                                 {signal.direction}
                               </Badge>
                               <span className="text-sm text-muted-foreground">
-                                Força: {signal.strength}/4
+                                {getStrengthLabel(signal.strength)}
                               </span>
                             </div>
                           </div>
@@ -221,97 +345,6 @@ export default function Dashboard() {
                   <h3 className="text-lg font-semibold text-foreground mb-2">Nenhum sinal encontrado</h3>
                   <p className="text-muted-foreground">
                     Analise alguns ativos para começar a gerar sinais
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-
-          <TabsContent value="strong" className="mt-6">
-            {strongLoading ? (
-              <div className="flex justify-center items-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-              </div>
-            ) : strongSignals && strongSignals.length > 0 ? (
-              <div className="grid gap-4">
-                {strongSignals.map((signal) => (
-                  <Card key={signal.id} className="bg-card border-primary/30 hover:border-primary transition-colors">
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className={`p-3 rounded-lg ${signal.direction === 'CALL' ? 'bg-green-500/20' : 'bg-red-500/20'}`}>
-                            {signal.direction === 'CALL' ? (
-                              <TrendingUp className="w-6 h-6 text-green-500" />
-                            ) : (
-                              <TrendingDown className="w-6 h-6 text-red-500" />
-                            )}
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-lg text-foreground">{signal.symbol}</h3>
-                            <div className="flex items-center gap-2 mt-1">
-                              <Badge variant={getSignalBadgeVariant(signal.direction)}>
-                                {signal.direction}
-                              </Badge>
-                              <span className="text-sm font-semibold text-primary">
-                                Força: {signal.strength}/4 ⭐
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                            <Clock className="w-4 h-4" />
-                            {formatTime(signal.createdAt)}
-                          </div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            {formatDate(signal.createdAt)}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="mt-4 grid grid-cols-2 md:grid-cols-5 gap-3">
-                        <div className="bg-secondary/50 p-2 rounded">
-                          <div className="text-xs text-muted-foreground">EMA</div>
-                          <div className={`text-sm font-medium ${getSignalColor(signal.emaSignal || '')}`}>
-                            {signal.emaSignal}
-                          </div>
-                        </div>
-                        <div className="bg-secondary/50 p-2 rounded">
-                          <div className="text-xs text-muted-foreground">RSI</div>
-                          <div className={`text-sm font-medium ${getSignalColor(signal.rsiSignal || '')}`}>
-                            {signal.rsiSignal}
-                          </div>
-                        </div>
-                        <div className="bg-secondary/50 p-2 rounded">
-                          <div className="text-xs text-muted-foreground">BBANDS</div>
-                          <div className={`text-sm font-medium ${getSignalColor(signal.bbandsSignal || '')}`}>
-                            {signal.bbandsSignal}
-                          </div>
-                        </div>
-                        <div className="bg-secondary/50 p-2 rounded">
-                          <div className="text-xs text-muted-foreground">MACD</div>
-                          <div className={`text-sm font-medium ${getSignalColor(signal.macdSignal || '')}`}>
-                            {signal.macdSignal}
-                          </div>
-                        </div>
-                        <div className="bg-secondary/50 p-2 rounded">
-                          <div className="text-xs text-muted-foreground">Tendência 1h</div>
-                          <div className={`text-sm font-medium ${getSignalColor(signal.longTermTrend || '')}`}>
-                            {signal.longTermTrend}
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <Card className="bg-card border-border">
-                <CardContent className="p-12 text-center">
-                  <TrendingUp className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold text-foreground mb-2">Nenhum sinal forte encontrado</h3>
-                  <p className="text-muted-foreground">
-                    Sinais fortes aparecem quando há confluência de 3 ou 4 indicadores
                   </p>
                 </CardContent>
               </Card>

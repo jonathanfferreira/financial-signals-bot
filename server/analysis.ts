@@ -229,15 +229,31 @@ export function analyzeAndGenerateSignal(
     details.macd = "PUT";
   }
   
-  // Determinar sinal final
+  // Determinar sinal final com diferentes níveis de força
   let finalDirection: "CALL" | "PUT" | "ESPERAR" = "ESPERAR";
   let finalStrength = 0;
   
-  // Regra de Confluência: Mínimo de 3 pontos + filtro de tendência de longo prazo
+  // Sinais FORTES: 3-4 pontos + tendência alinhada
   if (pontosCall >= 3 && pontosCall > pontosPut && longTermTrend === "CALL") {
     finalDirection = "CALL";
     finalStrength = pontosCall;
   } else if (pontosPut >= 3 && pontosPut > pontosCall && longTermTrend === "PUT") {
+    finalDirection = "PUT";
+    finalStrength = pontosPut;
+  }
+  // Sinais MÉDIOS: 2 pontos + tendência alinhada
+  else if (pontosCall === 2 && pontosCall > pontosPut && longTermTrend === "CALL") {
+    finalDirection = "CALL";
+    finalStrength = pontosCall;
+  } else if (pontosPut === 2 && pontosPut > pontosCall && longTermTrend === "PUT") {
+    finalDirection = "PUT";
+    finalStrength = pontosPut;
+  }
+  // Sinais FRACOS: 2 pontos sem filtro de tendência (apenas melhor que o oposto)
+  else if (pontosCall === 2 && pontosCall > pontosPut) {
+    finalDirection = "CALL";
+    finalStrength = pontosCall;
+  } else if (pontosPut === 2 && pontosPut > pontosCall) {
     finalDirection = "PUT";
     finalStrength = pontosPut;
   }

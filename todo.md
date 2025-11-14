@@ -36,9 +36,9 @@
 
 ## Novas Funcionalidades (v1.1)
 
-- [ ] Criar repositório GitHub
-- [ ] Fazer push do código para GitHub
-- [ ] Ajustar lógica de sinais para gerar sinais fracos (2 pontos)
-- [ ] Ajustar lógica de sinais para gerar sinais médios (2-3 pontos)
-- [ ] Criar filtros de força de sinal no frontend
+- [x] Criar repositório GitHub
+- [x] Fazer push do código para GitHub
+- [x] Ajustar lógica de sinais para gerar sinais fracos (2 pontos)
+- [x] Ajustar lógica de sinais para gerar sinais médios (2-3 pontos)
+- [x] Criar filtros de força de sinal no frontend
 - [ ] Testar geração de sinais com diferentes níveis

@@ -47,6 +47,14 @@ export const appRouter = router({
         return await db.getStrongSignals(minStrength, limit);
       }),
     
+    // Buscar sinais por forca minima
+    getByStrength: publicProcedure
+      .input(z.object({ minStrength: z.number(), limit: z.number().optional() }))
+      .query(async ({ input }) => {
+        const limit = input.limit || 50;
+        return await db.getStrongSignals(input.minStrength, limit);
+      }),
+    
     // Analisar ativo em tempo real
     analyze: publicProcedure
       .input(z.object({ symbol: z.string() }))
