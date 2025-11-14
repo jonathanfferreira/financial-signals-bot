@@ -32,3 +32,13 @@
 - [ ] Alertas customizáveis por usuário
 - [ ] Exportação de relatórios
 - [ ] Integração com múltiplas corretoras
+
+
+## Novas Funcionalidades (v1.1)
+
+- [ ] Criar repositório GitHub
+- [ ] Fazer push do código para GitHub
+- [ ] Ajustar lógica de sinais para gerar sinais fracos (2 pontos)
+- [ ] Ajustar lógica de sinais para gerar sinais médios (2-3 pontos)
+- [ ] Criar filtros de força de sinal no frontend
+- [ ] Testar geração de sinais com diferentes níveis
