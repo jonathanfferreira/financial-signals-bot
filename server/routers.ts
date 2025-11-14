@@ -110,11 +110,11 @@ export const appRouter = router({
             bbandsSignal: analysis.details.bbands,
             macdSignal: analysis.details.macd,
             longTermTrend: analysis.details.longTermTrend,
-            closePrice: analysis.closePrice.toString(),
-            ema9: analysis.indicators.ema9.toString(),
-            ema21: analysis.indicators.ema21.toString(),
-            rsi: analysis.indicators.rsi.toString(),
-            macdHist: analysis.indicators.macdHist.toString()
+            closePrice: analysis.closePrice ? analysis.closePrice.toString() : '0',
+            ema9: analysis.indicators.ema9 !== undefined ? analysis.indicators.ema9.toString() : '0',
+            ema21: analysis.indicators.ema21 !== undefined ? analysis.indicators.ema21.toString() : '0',
+            rsi: analysis.indicators.rsi !== undefined ? analysis.indicators.rsi.toString() : '0',
+            macdHist: analysis.indicators.macdHist !== undefined ? analysis.indicators.macdHist.toString() : '0'
           });
         }
         
