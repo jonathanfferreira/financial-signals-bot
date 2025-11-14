@@ -41,4 +41,5 @@
 - [x] Ajustar lógica de sinais para gerar sinais fracos (2 pontos)
 - [x] Ajustar lógica de sinais para gerar sinais médios (2-3 pontos)
 - [x] Criar filtros de força de sinal no frontend
-- [ ] Testar geração de sinais com diferentes níveis
+- [x] Testar geração de sinais com diferentes níveis
+- [x] Corrigir erro de toString() em valores undefined
