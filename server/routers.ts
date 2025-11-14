@@ -6,11 +6,13 @@ import { z } from "zod";
 import * as db from "./db";
 import { DEFAULT_ASSETS } from "./marketData";
 import { schedulerRouter } from "./routers/scheduler";
+import { telegramRouter } from "./routers/telegram";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
   system: systemRouter,
   scheduler: schedulerRouter,
+  telegram: telegramRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

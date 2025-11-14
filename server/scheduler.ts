@@ -2,6 +2,7 @@ import cron from 'node-cron';
 import { getDb, getAllAssets, createSignal } from './db';
 import { fetchShortTermData, fetchLongTermData, DEFAULT_ASSETS } from './marketData';
 import { analyzeAndGenerateSignal, determineLongTermTrend } from './analysis';
+import { sendTelegramNotification } from './telegram';
 
 interface ScheduledSignal {
   symbol: string;
@@ -127,10 +128,18 @@ async function runAutomaticAnalysis(): Promise<ScheduledSignal[]> {
             `[Scheduler] ✅ Novo sinal: ${signal.symbol} - ${signal.direction} (Força: ${signal.strength})`
           );
           newSignals.push(signal);
-          lastSignals.set(asset.symbol, signal);
+          lastSignals.set(signal.symbol, signal);
 
           // Salvar sinal no banco de dados
           await saveSignal(signal);
+
+          // Enviar notificação via Telegram
+          await sendTelegramNotification({
+            symbol: signal.symbol,
+            direction: signal.direction,
+            strength: signal.strength,
+            details: signal.details,
+          });
         }
       }
     }

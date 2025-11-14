@@ -53,3 +53,12 @@
 - [x] Criar sistema de notificações para novos sinais
 - [x] Integrar notificações no frontend
 - [x] Testar análise automática
+
+
+## Integração Telegram (v1.3)
+
+- [x] Configurar bot token do Telegram como secret
+- [x] Criar módulo de integração com Telegram
+- [x] Implementar notificações via Telegram no scheduler
+- [x] Adicionar painel de configuração do Telegram
+- [x] Testar notificações no celular

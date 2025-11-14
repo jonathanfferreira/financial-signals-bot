@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, TrendingUp, TrendingDown, Activity, RefreshCw, Clock, Filter } from "lucide-react";
 import { toast } from "sonner";
+import TelegramSettings from "@/components/TelegramSettings";
 
 export default function Dashboard() {
   const [selectedAsset, setSelectedAsset] = useState<string>("EURUSD=X");
@@ -351,6 +352,12 @@ export default function Dashboard() {
             )}
           </TabsContent>
         </Tabs>
+
+        {/* Configurações do Telegram */}
+        <div className="mt-8">
+          <h2 className="text-2xl font-bold text-foreground mb-6">Configurações</h2>
+          <TelegramSettings />
+        </div>
       </div>
     </div>
   );
